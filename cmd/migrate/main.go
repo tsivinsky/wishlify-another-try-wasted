@@ -9,23 +9,15 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/tsivinsky/goenv"
 	"github.com/tsivinsky/wishlify/db"
+	"github.com/tsivinsky/wishlify/env"
 )
-
-type Env struct {
-	DBUser     string `env:"POSTGRES_USER,required"`
-	DBPassword string `env:"POSTGRES_PASSWORD,required"`
-	DBName     string `env:"POSTGRES_DB,required"`
-	DBHost     string `env:"DB_HOST,required"`
-}
-
-var env = new(Env)
 
 func main() {
 	flag.Parse()
 
-	goenv.MustLoad(env)
+	goenv.MustLoad(env.Env)
 
-	db, err := db.Connect(env.DBHost, env.DBUser, env.DBPassword, env.DBName)
+	db, err := db.Connect(env.Env.DBHost, env.Env.DBUser, env.Env.DBPassword, env.Env.DBName)
 	if err != nil {
 		panic(err)
 	}

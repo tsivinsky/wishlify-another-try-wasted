@@ -8,16 +8,9 @@ import (
 
 	"github.com/tsivinsky/goenv"
 	"github.com/tsivinsky/wishlify/db"
+	"github.com/tsivinsky/wishlify/env"
+	"github.com/tsivinsky/wishlify/router"
 )
-
-type Env struct {
-	DBUser     string `env:"POSTGRES_USER,required"`
-	DBPassword string `env:"POSTGRES_PASSWORD,required"`
-	DBName     string `env:"POSTGRES_DB,required"`
-	DBHost     string `env:"DB_HOST,required"`
-}
-
-var env = new(Env)
 
 var (
 	allowedHeaders = []string{"Accept", "Content-Type", "Content-Length", "Authorization"}
@@ -30,9 +23,9 @@ func enableCors(w http.ResponseWriter) {
 }
 
 func main() {
-	goenv.MustLoad(env)
+	goenv.MustLoad(env.Env)
 
-	db, err := db.Connect(env.DBHost, env.DBUser, env.DBPassword, env.DBName)
+	db, err := db.Connect(env.Env.DBHost, env.Env.DBUser, env.Env.DBPassword, env.Env.DBName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,8 +33,16 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	ctx := router.NewContext(db)
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello, World!")
+	})
+
+	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			router.HandleGetUsers(ctx)(w, r)
+		}
 	})
 
 	err = http.ListenAndServe(":5000", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
