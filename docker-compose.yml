@@ -1,0 +1,24 @@
+version: "3.2"
+
+services:
+  db:
+    image: postgres:16
+    container_name: wishlify-db
+    restart: always
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: wishlify-app
+    restart: always
+    ports:
+      - 5000:5000
+    env_file:
+      - .env
+    depends_on:
+      - db
